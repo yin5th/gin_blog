@@ -12,7 +12,11 @@ import (
 	"net/http"
 )
 
-//获取单个文章【指定文章】
+// @Summary 获取单个文章
+// @Produce  json
+// @Param id param int true "ID"
+// @Success 200 {string} json "{"code":200,"data":{"id":3,"created_on":1516937037,"modified_on":0,"tag_id":11,"tag":{"id":11,"created_on":1516851591,"modified_on":0,"name":"312321","created_by":"4555","modified_by":"","state":1},"content":"5555","created_by":"2412","modified_by":"","state":1},"msg":"ok"}"
+// @Router /api/v1/articles/{id} [get]
 func GetArticle(c *gin.Context) {
 	valid := validation.Validation{}
 
@@ -41,7 +45,13 @@ func GetArticle(c *gin.Context) {
 	})
 }
 
-//获取多个文章
+// @Summary 获取多个文章
+// @Produce  json
+// @Param tag_id query int false "TagID"
+// @Param state query int false "State"
+// @Param created_by query int false "CreatedBy"
+// @Success 200 {string} json "{"code":200,"data":[{"id":3,"created_on":1516937037,"modified_on":0,"tag_id":11,"tag":{"id":11,"created_on":1516851591,"modified_on":0,"name":"312321","created_by":"4555","modified_by":"","state":1},"content":"5555","created_by":"2412","modified_by":"","state":1}],"msg":"ok"}"
+// @Router /api/v1/articles [get]
 func GetArticles(c *gin.Context) {
 	data := make(map[string]interface{})
 	maps := make(map[string]interface{})
@@ -80,19 +90,31 @@ func GetArticles(c *gin.Context) {
 
 }
 
-//新增文章
+// @Summary 新增文章
+// @Produce  json
+// @Param tag_id formData int true "TagID"
+// @Param title formData string true "Title"
+// @Param desc formData string true "Desc"
+// @Param content formData string true "Content"
+// @Param created_by formData string true "CreatedBy"
+// @Param state formData int true "State"
+// @Param cover_image_url formData string true "CoverImageUrl"
+// @Success 200 {string} json "{"code":200,"data":{},"msg":"ok"}"
+// @Router /api/v1/articles [post]
 func AddArticle(c *gin.Context) {
 	tagId := com.StrTo(c.PostForm("tag_id")).MustInt()
 	title := c.PostForm("title")
 	desc := c.PostForm("desc")
 	content := c.PostForm("content")
 	createdBy := c.PostForm("created_by")
+	coverImageUrl := c.PostForm("cover_image_url")
 	state := com.StrTo(c.DefaultPostForm("state", "0")).MustInt()
 
 	valid := validation.Validation{}
 	valid.Required(title, "title").Message("标题不能为空")
 	valid.Required(content, "content").Message("内容不能为空")
 	valid.Required(createdBy, "created_by").Message("创建人不能为空")
+	valid.Required(coverImageUrl, "cover_image_url").Message("封面地址不能为空")
 
 	valid.Min(tagId, 1, "tag_id").Message("标签ID必须是大于0的整数")
 	valid.Range(state, 0, 1, "state").Message("状态只允许0或者1")
@@ -112,6 +134,7 @@ func AddArticle(c *gin.Context) {
 			data["content"] = content
 			data["created_by"] = createdBy
 			data["state"] = state
+			data["cover_image_url"] = coverImageUrl
 
 			code = e.SUCCESS
 			models.AddArticle(data)
@@ -132,13 +155,26 @@ func AddArticle(c *gin.Context) {
 	})
 }
 
-//修改文章
+// @Summary 修改文章
+// @Produce  json
+// @Param id param int true "ID"
+// @Param tag_id formData string false "TagID"
+// @Param title formData string false "Title"
+// @Param desc formData string false "Desc"
+// @Param content formData string false "Content"
+// @Param modified_by formData string true "ModifiedBy"
+// @Param state formData int false "State"
+// @Param cover_image_url formData string false "CoverImageUrl"
+// @Success 200 {string} json "{"code":200,"data":{},"msg":"ok"}"
+// @Failure 200 {string} json "{"code":400,"data":{},"msg":"请求参数错误"}"
+// @Router /api/v1/articles/{id} [put]
 func EditArticle(c *gin.Context) {
 	id := com.StrTo(c.Param("id")).MustInt()
 	tagId := com.StrTo(c.PostForm("tag_id")).MustInt()
 	title := c.PostForm("title")
 	desc := c.PostForm("desc")
 	content := c.PostForm("content")
+	coverImageUrl := c.PostForm("cover_image_url")
 	modifiedBy := c.PostForm("modified_by")
 
 	valid := validation.Validation{}
@@ -154,6 +190,7 @@ func EditArticle(c *gin.Context) {
 	valid.MaxSize(content, 65535, "content").Message("内容最长65535字符")
 	valid.Required(modifiedBy, "modified_by").Message("修改人不能为空")
 	valid.MaxSize(modifiedBy, 100, "modified_by").Message("修改人最长255字符")
+	valid.MaxSize(coverImageUrl, 255, "cover_image_url").Message("封面地址最长为255字符")
 
 	code := e.INVALID_PARAMS
 	if !valid.HasErrors() {
@@ -178,6 +215,11 @@ func EditArticle(c *gin.Context) {
 				data["state"] = state
 
 			}
+
+			if coverImageUrl != "" {
+				data["cover_image_url"] = coverImageUrl
+			}
+
 			data["modified_by"] = modifiedBy
 
 			code = e.SUCCESS
@@ -200,7 +242,12 @@ func EditArticle(c *gin.Context) {
 
 }
 
-//删除文章
+// @Summary 删除文章
+// @Produce  json
+// @Param id param int true "ID"
+// @Success 200 {string} json "{"code":200,"data":{},"msg":"ok"}"
+// @Failure 200 {string} json "{"code":400,"data":{},"msg":"请求参数错误"}"
+// @Router /api/v1/articles/{id} [delete]
 func DeleteArticle(c *gin.Context) {
 	id := com.StrTo(c.Param("id")).MustInt()
 

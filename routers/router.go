@@ -3,11 +3,13 @@ package routers
 import (
 	"gin_blog/middleware/jwt"
 	"gin_blog/pkg/setting"
+	"gin_blog/pkg/upload"
 	"gin_blog/routers/api"
 	"gin_blog/routers/api/v1"
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
+	"net/http"
 )
 
 func InitRouter() *gin.Engine {
@@ -18,10 +20,15 @@ func InitRouter() *gin.Engine {
 	//设置模式
 	gin.SetMode(setting.ServerSetting.RunMode)
 
+	//静态资源
+	r.StaticFS("/upload/images", http.Dir(upload.GetImageFullPath()))
+
 	//获取token
 	r.POST("/auth", api.GetAuth)
 	//api文档
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	//上传文件
+	r.POST("/upload", api.UploadImage)
 
 	//引入jwt中间件
 	r.Use(jwt.JWT())
