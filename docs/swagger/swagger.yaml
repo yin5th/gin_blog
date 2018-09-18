@@ -1,0 +1,41 @@
+info:
+  contact: {}
+  license: {}
+paths:
+  /api/v1/tags:
+    post:
+      parameters:
+      - {}
+      - {}
+      - {}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"code":200, "data":{}, "message":"ok'
+          schema:
+            type: string
+      summary: 新增文章标签
+  /api/v1/tags/{id}:
+    put:
+      parameters:
+      - {}
+      - description: Name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: modified_by
+        in: formData
+        name: modified_by
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"code":200,"data":{},"message":"ok"}'
+          schema:
+            type: string
+      summary: 修改文章标签
+swagger: "2.0"
