@@ -3,12 +3,14 @@ package v1
 import (
 	"gin_blog/pkg/app"
 	"gin_blog/pkg/e"
+	"gin_blog/pkg/qrcode"
 	"gin_blog/pkg/setting"
 	"gin_blog/pkg/util"
 	"gin_blog/service/article_service"
 	"gin_blog/service/tag_service"
 	"github.com/Unknwon/com"
 	"github.com/astaxie/beego/validation"
+	"github.com/boombuler/barcode/qr"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -307,4 +309,56 @@ func DeleteArticle(c *gin.Context) {
 	}
 
 	appG.Response(http.StatusOK, e.SUCCESS, nil)
+}
+
+// @Summary 根据提交url生成含二维码的海报
+// @tags poster
+// @Produce  json
+// @Param url formData string true "url"
+// @Success 200 {string} json "{"code":200,"data":{"poster_save_url":"runtime/qrcode/poster-0008407ba32d95d93afed30dc3824ffc.jpg","poster_url":"http://127.0.0.1:8088/qrcode/poster-0008407ba32d95d93afed30dc3824ffc.jpg"},"message":"ok"}"
+// @Router /api/v1/articles/qrcode/generate [post]
+func GenerateArticlePoster(c *gin.Context) {
+	appG := app.Gin{C: c}
+
+	url := c.PostForm("url")
+	valid := validation.Validation{}
+	valid.Required(url, "url").Message("url不能为空")
+	valid.MaxSize(url, 500, "url").Message("url最大500字符")
+
+	if valid.HasErrors() {
+		app.MarkErrors(valid.Errors)
+		appG.Response(http.StatusOK, e.INVALID_PARAMS, nil)
+		return
+	}
+
+	article := &article_service.Article{}
+	//二维码url+尺寸+级别
+	qr := qrcode.NewQrCode(url, 300, 300, qr.M, qr.Auto)
+	//海报名称
+	posterName := article_service.GetPosterFlag() + "-" + qrcode.GetQrcodeFileName(qr.URL) + qr.GetQrCodeExt()
+	articlePoster := article_service.NewArticlePoster(posterName, article, qr)
+	articlePosterBgService := article_service.NewArticlePosterBg(
+		"bg.jpg",
+		articlePoster,
+		&article_service.Rect{
+			X0: 0,
+			Y0: 0,
+			X1: 550,
+			Y1: 700,
+		},
+		&article_service.Pt{
+			X: 125,
+			Y: 298,
+		},
+	)
+	_, filePath, err := articlePosterBgService.Generate()
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR_GEN_ARTICLE_POSTER_FAIL, nil)
+		return
+	}
+
+	appG.Response(http.StatusOK, e.SUCCESS, map[string]string{
+		"poster_url":      qrcode.GetQrcodeFullUrl(posterName),
+		"poster_save_url": filePath + posterName,
+	})
 }

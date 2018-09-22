@@ -3,10 +3,9 @@
     "info": {
         "description": "博客简单的api.",
         "title": "博客API",
-        "termsOfService": "https://github.com/yin5th/gin_blog",
         "contact": {
             "name": "Blog Api",
-            "url": "https://github.com/yin5th",
+            "url": "https://github.com/yin5th/gin_blog",
             "email": "541304803@qq.com"
         },
         "license": {},
@@ -114,6 +113,34 @@
                 "responses": {
                     "200": {
                         "description": "{\"code\":200,\"data\":{},\"message\":\"ok\"}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/articles/qrcode/generate": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "poster"
+                ],
+                "summary": "根据提交url生成含二维码的海报",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "url",
+                        "name": "url",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"code\":200,\"data\":{\"poster_save_url\":\"runtime/qrcode/poster-0008407ba32d95d93afed30dc3824ffc.jpg\",\"poster_url\":\"http://127.0.0.1:8088/qrcode/poster-0008407ba32d95d93afed30dc3824ffc.jpg\"},\"message\":\"ok\"}",
                         "schema": {
                             "type": "string"
                         }

@@ -3,10 +3,9 @@ info:
   contact:
     email: 541304803@qq.com
     name: Blog Api
-    url: https://github.com/yin5th
+    url: https://github.com/yin5th/gin_blog
   description: 博客简单的api.
   license: {}
-  termsOfService: https://github.com/yin5th/gin_blog
   title: 博客API
   version: v1
 paths:
@@ -151,6 +150,24 @@ paths:
       summary: 修改文章
       tags:
       - article
+  /api/v1/articles/qrcode/generate:
+    post:
+      parameters:
+      - description: url
+        in: formData
+        name: url
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"code":200,"data":{"poster_save_url":"runtime/qrcode/poster-0008407ba32d95d93afed30dc3824ffc.jpg","poster_url":"http://127.0.0.1:8088/qrcode/poster-0008407ba32d95d93afed30dc3824ffc.jpg"},"message":"ok"}'
+          schema:
+            type: string
+      summary: 根据提交url生成含二维码的海报
+      tags:
+      - poster
   /api/v1/tags:
     get:
       parameters:

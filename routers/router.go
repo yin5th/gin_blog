@@ -3,6 +3,7 @@ package routers
 import (
 	"gin_blog/middleware/jwt"
 	"gin_blog/pkg/export"
+	"gin_blog/pkg/qrcode"
 	"gin_blog/pkg/setting"
 	"gin_blog/pkg/upload"
 	"gin_blog/routers/api"
@@ -24,6 +25,7 @@ func InitRouter() *gin.Engine {
 	//静态资源
 	r.StaticFS("/upload/images", http.Dir(upload.GetImageFullPath()))
 	r.StaticFS("/export", http.Dir(export.GetExcelFullPath()))
+	r.StaticFS("/qrcode", http.Dir(qrcode.GetQrCodeFullPath()))
 	//获取token
 	r.POST("/auth", api.GetAuth)
 	//api文档
@@ -60,6 +62,8 @@ func InitRouter() *gin.Engine {
 		apiv1.PUT("/articles/:id", v1.EditArticle)
 		//删除文章
 		apiv1.DELETE("/articles/:id", v1.DeleteArticle)
+		//生成含二维码的海报
+		apiv1.POST("/articles/poster/generate", v1.GenerateArticlePoster)
 	}
 
 	return r
