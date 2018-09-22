@@ -1,10 +1,9 @@
 package api
 
 import (
-	"fmt"
 	"gin_blog/models"
+	"gin_blog/pkg/app"
 	"gin_blog/pkg/e"
-	"gin_blog/pkg/logging"
 	"gin_blog/pkg/util"
 	"github.com/astaxie/beego/validation"
 	"github.com/gin-gonic/gin"
@@ -17,6 +16,7 @@ type Auth struct {
 }
 
 func GetAuth(c *gin.Context) {
+	appG := app.Gin{c}
 	username := c.PostForm("username")
 	password := c.PostForm("password")
 
@@ -25,32 +25,30 @@ func GetAuth(c *gin.Context) {
 	confidition := Auth{Username: username, Password: password}
 	ok, _ := valid.Valid(confidition)
 
-	code := e.INVALID_PARAMS
-	data := make(map[string]interface{})
-	if ok {
-		isExist := models.CheckAuth(username, password)
-		fmt.Println(isExist)
-		if isExist {
-			token, err := util.GenerateToken(username, password)
-			if err != nil {
-				code = e.ERROR_AUTH_TOKEN
-			} else {
-				data["token"] = token
-				code = e.SUCCESS
-			}
-		} else {
-			//auth账号或密码错误
-			code = e.ERROR_AUTH_FAIL
-		}
-	} else {
-		for _, err := range valid.Errors {
-			logging.Info("Auth token:", err.Key, err.Message)
-		}
+	if !ok {
+		app.MarkErrors(valid.Errors)
+		appG.Response(http.StatusOK, e.INVALID_PARAMS, nil)
+		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"code":    code,
-		"message": e.GetMsg(code),
-		"data":    data,
-	})
+	data := make(map[string]interface{})
+
+	isExist, err := models.CheckAuth(username, password)
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR_AUTH_CHECK_FAIL, nil)
+		return
+	}
+
+	if !isExist {
+		appG.Response(http.StatusOK, e.ERROR_AUTH_TOKEN, nil)
+		return
+	}
+	token, err := util.GenerateToken(username, password)
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR_AUTH_CHECK_TOKEN_FAIL, nil)
+		return
+	}
+
+	data["token"] = token
+	appG.Response(http.StatusOK, e.SUCCESS, data)
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"gin_blog/models"
+	"gin_blog/pkg/gredis"
 	"gin_blog/pkg/logging"
 	"gin_blog/pkg/setting"
 	"gin_blog/routers"
@@ -14,10 +15,25 @@ import (
 	"time"
 )
 
+// @title 博客API
+// @version v1
+// @description 博客简单的api.
+
+// @contact.name Blog Api
+// @contact.url https://github.com/yin5th/gin_blog
+// @contact.email 541304803@qq.com
+
+// @securitydefinitions.oauth2.password OAuth2Password
+// @tokenUrl /auth
+// @in header
+// @name token
+
+// @host localost:8088
 func main() {
 	setting.Setup()
 	models.Setup()
 	logging.Setup()
+	gredis.Setup()
 
 	router := routers.InitRouter()
 

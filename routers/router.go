@@ -2,6 +2,7 @@ package routers
 
 import (
 	"gin_blog/middleware/jwt"
+	"gin_blog/pkg/export"
 	"gin_blog/pkg/setting"
 	"gin_blog/pkg/upload"
 	"gin_blog/routers/api"
@@ -22,7 +23,7 @@ func InitRouter() *gin.Engine {
 
 	//静态资源
 	r.StaticFS("/upload/images", http.Dir(upload.GetImageFullPath()))
-
+	r.StaticFS("/export", http.Dir(export.GetExcelFullPath()))
 	//获取token
 	r.POST("/auth", api.GetAuth)
 	//api文档
@@ -30,9 +31,9 @@ func InitRouter() *gin.Engine {
 	//上传文件
 	r.POST("/upload", api.UploadImage)
 
-	//引入jwt中间件
-	r.Use(jwt.JWT())
 	apiv1 := r.Group("/api/v1")
+	//引入jwt中间件
+	apiv1.Use(jwt.JWT())
 	{
 		/*****标签*****/
 		//获取标签列表
@@ -43,6 +44,10 @@ func InitRouter() *gin.Engine {
 		apiv1.PUT("/tags/:id", v1.EditTag)
 		//删除指定
 		apiv1.DELETE("/tags/:id", v1.DeleteTag)
+		//导出标签
+		r.POST("/tags/export", v1.ExportTag)
+		//导入标签
+		r.POST("/tags/import", v1.ImportTag)
 
 		/*****文章*****/
 		//获取文章列表
